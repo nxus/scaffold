@@ -10,6 +10,8 @@ import Generator from 'scaffold-generator';
 import sanitize from 'sanitize-filename';
 import npm from 'npm';
 import _ from 'underscore';
+import fs from 'fs';
+import path from 'path';
 
 class Scaffold {
   constructor (app) {
@@ -50,9 +52,11 @@ class Scaffold {
     if(!scaffoldOpts)
       return console.error('Scaffold '+scaffold+' is not valid');
 
-    var dest = process.cwd()+"/"+name;
+    var dest = path.join(process.cwd(), name);
 
-    var source = scaffoldOpts.dir;
+    var source = fs.realpathSync(scaffoldOpts.dir);
+    console.log('source', source)
+    console.log('dest', dest)
     Generator({data: scaffoldOpts.opts}).copy(source, dest, (err) => {
       if(err) return console.error('Error copying scaffold', err)
       this.app.get('cli').emit('info').with('Successfully installed '+scaffold+" app at ./"+name)
