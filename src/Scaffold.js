@@ -1,7 +1,7 @@
 /* 
 * @Author: Mike Reich
 * @Date:   2015-11-05 19:16:22
-* @Last Modified 2015-11-15
+* @Last Modified 2015-12-08
 */
 
 'use strict';
@@ -12,21 +12,19 @@ import npm from 'npm';
 import _ from 'underscore';
 
 class Scaffold {
-  constructor (app, loaded) {
+  constructor (app) {
     this.app = app;
     this._scaffolds = {}
 
-    app.on('app.load', () => {
-      app.emit('scaffold.register', this._register.bind(this))
-    })
+    app.get('scaffold').gather('scaffolds').each(this._register.bind(this))
 
-    app.on('cli.register', (handler) => {
-      handler('create <name> [scaffold]', 'Create a new project, optionally from a scaffold', this._handleScaffold.bind(this))
-      handler('scaffolds', 'List all available scaffolds', this._listScaffolds.bind(this))
-    });
+    app.get('cli').send("command")
+    .with('create <name> [scaffold]', 'Create a new project, optionally from a scaffold', this._handleScaffold.bind(this))
+    app.get('cli').send("command")
+    .with('scaffolds', 'List all available scaffolds', this._listScaffolds.bind(this))
   }
 
-  _register (name, opts, dir) {
+  _register ([name, opts, dir]) {
     this._scaffolds[name] = { opts: opts, dir: dir};
   }
 
@@ -36,7 +34,7 @@ class Scaffold {
 
   _listScaffolds () {
     _.each(this._scaffolds, (value, key) => {
-      this.app.emit('cli.info', value.opts.name+": "+value.opts.description);
+      this.app.get('cli').emit('info').with(value.opts.name+": "+value.opts.description);
     })
   }
 
@@ -57,13 +55,13 @@ class Scaffold {
     var source = scaffoldOpts.dir;
     Generator({data: scaffoldOpts.opts}).copy(source, dest, (err) => {
       if(err) return console.error('Error copying scaffold', err)
-      this.app.emit('cli.info', 'Successfully installed '+scaffold+" app at ./"+name)
-      this.app.emit('cli.info', 'Installing dependencies...')
+      this.app.get('cli').emit('info').with('Successfully installed '+scaffold+" app at ./"+name)
+      this.app.get('cli').emit('info').with('Installing dependencies...')
       npm.load({
           prefix: dest
       }, (err) => {
         npm.commands.install([], (er, data) => {
-          this.app.emit('cli.info', 'Done installing!')
+          this.app.get('cli').emit('info').with('Done installing!')
         })
       });
     });

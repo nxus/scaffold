@@ -2,7 +2,7 @@
   "name": "@nxus/scaffold",
   "version": "1.0.0",
   "description": "The scaffold generator for Nxus",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "mocha --compilers js:babel/register -R spec test/index.js",
     "compile": "babel --optional runtime -d lib/ src/",
